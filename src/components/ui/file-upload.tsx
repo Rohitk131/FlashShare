@@ -6,7 +6,7 @@ import { useDropzone } from "react-dropzone";
 import {createClient} from '@/lib/client'
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const supabase = await createClient(); 
+const supabase =  createClient(); 
 
 const mainVariant = {
   initial: { x: 0, y: 0 },
