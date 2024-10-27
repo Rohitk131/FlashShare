@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+
 import { motion } from "framer-motion";
 import Upload from "@/components/Upload";
 import { AnimatedShinyTextDemo } from "@/components/CreatorButton";
+import Link from "next/link";
 
 export default function Home() {
-  const [isHovered, setIsHovered] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -20,7 +21,7 @@ export default function Home() {
         </h1>
 
         {/* Lightning bolt decorative element */}
-        <div className="absolute top-2 right-4 text-green-400 text-lg animate-bounce">
+        <div className="absolute top-3 left-5 text-green-400 text-lg animate-bounce">
           ⚡
         </div>
       </header>
@@ -64,7 +65,9 @@ export default function Home() {
 
       {/* Fixed button in the bottom right corner */}
       <div className="fixed bottom-0 right-4">
+        <Link href='https://github.com/Rohitk131'>
         <AnimatedShinyTextDemo />
+        </Link>
       </div>
     </div>
   );

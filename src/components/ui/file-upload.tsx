@@ -1,12 +1,16 @@
 import { cn } from "@/lib/utils";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload } from "@tabler/icons-react";
-import { useDropzone } from "react-dropzone";
-import {createClient} from '@/lib/client'
+import { useDropzone, FileRejection } from "react-dropzone";
+import { createClient } from '@/lib/client';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const supabase =  createClient(); 
+const supabase = createClient();
+
+interface FileUploadProps {
+  onChange?: (file: File | null) => void;
+}
 
 const mainVariant = {
   initial: { x: 0, y: 0 },
@@ -18,98 +22,97 @@ const secondaryVariant = {
   animate: { opacity: 1 },
 };
 
-export const FileUpload = ({ onChange }) => {
-    const [file, setFile] = useState(null);
-    const [uploadStatus, setUploadStatus] = useState("idle");
-    const [downloadUrl, setDownloadUrl] = useState("");
-    const [error, setError] = useState("");
-    const [showQR, setShowQR] = useState(false);
-  
-    const handleFileChange = (newFiles) => {
-      setFile(newFiles[0]);
-      onChange && onChange(newFiles[0]);
-      setDownloadUrl("");
-      setError("");
-      setShowQR(false);
-    };
-  
-    const handleUpload = async (e) => {
-      e.stopPropagation();
-      try {
-        if (!file) {
-          throw new Error('Please select a file first');
-        }
-  
-        setUploadStatus("uploading");
-        setError("");
-        
-        // Create a unique filename with timestamp and random string
-        const timestamp = new Date().getTime();
-        const randomString = Math.random().toString(36).substring(7);
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${timestamp}-${randomString}.${fileExt}`;
-        const filePath = `public/${fileName}`; // Store in a public subfolder
-  
-        // Upload file to Supabase Storage
-        const { error: uploadError, data } = await supabase.storage
-          .from('files') // Make sure this matches your bucket name
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: file.type // Explicitly set content type
-          });
-  
-        if (uploadError) {
-          throw uploadError;
-        }
-  
-        // Get the public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('files')
-          .getPublicUrl(filePath);
-  
-        setDownloadUrl(publicUrl);
-        setUploadStatus("complete");
-        
-      } catch (err) {
-        console.error('Upload error:', err);
-        setError(err.message || 'Error uploading file');
-        setUploadStatus("error");
+export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "complete" | "error">("idle");
+  const [downloadUrl, setDownloadUrl] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [showQR, setShowQR] = useState<boolean>(false);
+
+  const handleFileChange = (newFiles: File[]) => {
+    setFile(newFiles[0]);
+    onChange?.(newFiles[0]);
+    setDownloadUrl("");
+    setError("");
+    setShowQR(false);
+  };
+
+  const handleUpload = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (!file) {
+        throw new Error('Please select a file first');
       }
-    };
-  
-    const removeFile = (e) => {
-      e.stopPropagation();
-      setFile(null);
-      setDownloadUrl("");
+
+      setUploadStatus("uploading");
       setError("");
-      setShowQR(false);
-    };
-  
-    const copyToClipboard = async (e) => {
-      e.stopPropagation();
-      try {
-        await navigator.clipboard.writeText(downloadUrl);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+      
+      const timestamp = new Date().getTime();
+      const randomString = Math.random().toString(36).substring(7);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${timestamp}-${randomString}.${fileExt}`;
+      const filePath = `public/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
+        });
+
+      if (uploadError) {
+        throw uploadError;
       }
-    };
-  
-    const toggleQR = (e) => {
-      e.stopPropagation();
-      setShowQR(!showQR);
-    };
-  
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-      multiple: false,
-      noClick: false,
-      maxSize: 50 * 1024 * 1024, // 50MB max size
-      onDrop: handleFileChange,
-      onDropRejected: (fileRejections) => {
-        const error = fileRejections[0]?.errors[0]?.message || "File upload failed";
-        setError(error);
-      },
-    });
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('files')
+        .getPublicUrl(filePath);
+
+      setDownloadUrl(publicUrl);
+      setUploadStatus("complete");
+      
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : 'Error uploading file');
+      setUploadStatus("error");
+    }
+  };
+
+  const removeFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFile(null);
+    onChange?.(null);
+    setDownloadUrl("");
+    setError("");
+    setShowQR(false);
+  };
+
+  const copyToClipboard = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(downloadUrl);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const toggleQR = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowQR(!showQR);
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    multiple: false,
+    noClick: false,
+    maxSize: 50 * 1024 * 1024,
+    onDrop: handleFileChange,
+    onDropRejected: (fileRejections: FileRejection[]) => {
+      const error = fileRejections[0]?.errors[0]?.message || "File upload failed";
+      setError(error);
+    },
+  });
+
   return (
     <div className="w-full" {...getRootProps()}>
       <motion.div
@@ -117,7 +120,7 @@ export const FileUpload = ({ onChange }) => {
         className="p-10 group/file block rounded-xl cursor-pointer w-full relative overflow-hidden"
       >
         <input
-          {...getInputProps()} // Use getInputProps from useDropzone
+          {...getInputProps()}
           className="hidden"
         />
         <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
@@ -243,13 +246,12 @@ export const FileUpload = ({ onChange }) => {
 
                       {showQR && (
                         <div className="flex justify-center m-4">
-                        <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&color=4ade80&bgcolor=000000`}
-                          alt="QR Code"
-                          className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
-                        />
-                      </div>
-                      
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&color=4ade80&bgcolor=000000`}
+                            alt="QR Code"
+                            className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
+                          />
+                        </div>
                       )}
                     </div>
                   </motion.div>
@@ -296,7 +298,7 @@ export const FileUpload = ({ onChange }) => {
   );
 };
 
-export function GridPattern() {
+export function GridPattern(): JSX.Element {
   const columns = 41;
   const rows = 11;
   return (
