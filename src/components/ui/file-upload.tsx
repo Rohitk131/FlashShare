@@ -1,45 +1,34 @@
 import { cn } from "@/lib/utils";
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { IconUpload } from "@tabler/icons-react";
+import { IconUpload, IconX } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
 
 const mainVariant = {
-  initial: {
-    x: 0,
-    y: 0,
-  },
-  animate: {
-    x: 20,
-    y: -20,
-    opacity: 0.9,
-  },
+  initial: { x: 0, y: 0 },
+  animate: { x: 20, y: -20, opacity: 0.9 },
 };
 
 const secondaryVariant = {
-  initial: {
-    opacity: 0,
-  },
-  animate: {
-    opacity: 1,
-  },
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
 };
 
-export const FileUpload = ({
-  onChange,
-}: {
-  onChange?: (files: File[]) => void;
-}) => {
-  const [files, setFiles] = useState<File[]>([]);
+export const FileUpload = ({ onChange }) => {
+  const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (newFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    onChange && onChange(newFiles);
+    setFile(newFiles[0]); // Only allow one file
+    onChange && onChange(newFiles[0]);
   };
 
   const handleClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const removeFile = () => {
+    setFile(null);
   };
 
   const { getRootProps, isDragActive } = useDropzone({
@@ -56,7 +45,7 @@ export const FileUpload = ({
       <motion.div
         onClick={handleClick}
         whileHover="animate"
-        className="p-10 group/file block rounded-lg cursor-pointer w-full relative overflow-hidden"
+        className="p-10 group/file block rounded-xl cursor-pointer w-full relative overflow-hidden"
       >
         <input
           ref={fileInputRef}
@@ -76,11 +65,11 @@ export const FileUpload = ({
             Drag or drop your files here or click to upload
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
-            {files.length > 0 &&
-              files.map((file, idx) => (
+            {file ? (
+              <div>
                 <motion.div
-                  key={"file" + idx}
-                  layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
+                  key="file-upload"
+                  layoutId="file-upload"
                   className={cn(
                     "relative overflow-hidden z-40 bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
                     "shadow-sm"
@@ -104,17 +93,15 @@ export const FileUpload = ({
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </motion.p>
                   </div>
-
                   <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       layout
-                      className="px-1 py-0.5 rounded-md bg-neutral-800 "
+                      className="px-1 py-0.5 rounded-md bg-neutral-800"
                     >
                       {file.type}
                     </motion.p>
-
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -124,9 +111,18 @@ export const FileUpload = ({
                       {new Date(file.lastModified).toLocaleDateString()}
                     </motion.p>
                   </div>
+                  <button
+                    onClick={removeFile}
+                    className="absolute top-2 right-2 text-neutral-500 hover:text-neutral-300"
+                  >
+                    <IconX className="w-5 h-5" />
+                  </button>
                 </motion.div>
-              ))}
-            {!files.length && (
+                <button className="bg-green-500 text-black px-4 py-2 font-semibold rounded-lg mt-2">
+                  Upload
+                </button>
+              </div>
+            ) : (
               <motion.div
                 layoutId="file-upload"
                 variants={mainVariant}
@@ -154,8 +150,7 @@ export const FileUpload = ({
                 )}
               </motion.div>
             )}
-
-            {!files.length && (
+            {!file && (
               <motion.div
                 variants={secondaryVariant}
                 className="absolute opacity-0 border border-dashed border-green-400 inset-0 z-30 bg-transparent flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md"
@@ -172,7 +167,7 @@ export function GridPattern() {
   const columns = 41;
   const rows = 11;
   return (
-    <div className="flex bg-neutral-900 flex-shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px  scale-105">
+    <div className="flex bg-neutral-900 flex-shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px scale-105">
       {Array.from({ length: rows }).map((_, row) =>
         Array.from({ length: columns }).map((_, col) => {
           const index = row * columns + col;
