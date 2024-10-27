@@ -14,7 +14,7 @@ export default function Home() {
         {/* Lightning bolt decorative element */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="relative w-full h-full">
-            <div className="absolute top-2 left-3 text-green-400 text-lg animate-bounce ">
+            <div className="absolute top-2 left-3 text-green-400 text-lg animate-bounce">
               ⚡
             </div>
             

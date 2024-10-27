@@ -1,8 +1,12 @@
 import { cn } from "@/lib/utils";
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { IconUpload, IconX } from "@tabler/icons-react";
+import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
+import {createClient} from '@/lib/client'
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const supabase = await createClient(); 
 
 const mainVariant = {
   initial: { x: 0, y: 0 },
@@ -15,43 +19,105 @@ const secondaryVariant = {
 };
 
 export const FileUpload = ({ onChange }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (newFiles: File[]) => {
-    setFile(newFiles[0]); // Only allow one file
-    onChange && onChange(newFiles[0]);
-  };
-
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const removeFile = () => {
-    setFile(null);
-  };
-
-  const { getRootProps, isDragActive } = useDropzone({
-    multiple: false,
-    noClick: true,
-    onDrop: handleFileChange,
-    onDropRejected: (error) => {
-      console.log(error);
-    },
-  });
-
+    const [file, setFile] = useState(null);
+    const [uploadStatus, setUploadStatus] = useState("idle");
+    const [downloadUrl, setDownloadUrl] = useState("");
+    const [error, setError] = useState("");
+    const [showQR, setShowQR] = useState(false);
+  
+    const handleFileChange = (newFiles) => {
+      setFile(newFiles[0]);
+      onChange && onChange(newFiles[0]);
+      setDownloadUrl("");
+      setError("");
+      setShowQR(false);
+    };
+  
+    const handleUpload = async (e) => {
+      e.stopPropagation();
+      try {
+        if (!file) {
+          throw new Error('Please select a file first');
+        }
+  
+        setUploadStatus("uploading");
+        setError("");
+        
+        // Create a unique filename with timestamp and random string
+        const timestamp = new Date().getTime();
+        const randomString = Math.random().toString(36).substring(7);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${timestamp}-${randomString}.${fileExt}`;
+        const filePath = `public/${fileName}`; // Store in a public subfolder
+  
+        // Upload file to Supabase Storage
+        const { error: uploadError, data } = await supabase.storage
+          .from('files') // Make sure this matches your bucket name
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type // Explicitly set content type
+          });
+  
+        if (uploadError) {
+          throw uploadError;
+        }
+  
+        // Get the public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('files')
+          .getPublicUrl(filePath);
+  
+        setDownloadUrl(publicUrl);
+        setUploadStatus("complete");
+        
+      } catch (err) {
+        console.error('Upload error:', err);
+        setError(err.message || 'Error uploading file');
+        setUploadStatus("error");
+      }
+    };
+  
+    const removeFile = (e) => {
+      e.stopPropagation();
+      setFile(null);
+      setDownloadUrl("");
+      setError("");
+      setShowQR(false);
+    };
+  
+    const copyToClipboard = async (e) => {
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(downloadUrl);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    };
+  
+    const toggleQR = (e) => {
+      e.stopPropagation();
+      setShowQR(!showQR);
+    };
+  
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+      multiple: false,
+      noClick: false,
+      maxSize: 50 * 1024 * 1024, // 50MB max size
+      onDrop: handleFileChange,
+      onDropRejected: (fileRejections) => {
+        const error = fileRejections[0]?.errors[0]?.message || "File upload failed";
+        setError(error);
+      },
+    });
   return (
     <div className="w-full" {...getRootProps()}>
       <motion.div
-        onClick={handleClick}
         whileHover="animate"
         className="p-10 group/file block rounded-xl cursor-pointer w-full relative overflow-hidden"
       >
         <input
-          ref={fileInputRef}
-          id="file-upload-handle"
-          type="file"
-          onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
+          {...getInputProps()} // Use getInputProps from useDropzone
           className="hidden"
         />
         <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
@@ -66,7 +132,7 @@ export const FileUpload = ({ onChange }) => {
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             {file ? (
-              <div>
+              <div onClick={(e) => e.stopPropagation()}>
                 <motion.div
                   key="file-upload"
                   layoutId="file-upload"
@@ -98,7 +164,7 @@ export const FileUpload = ({ onChange }) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       layout
-                      className="px-1 py-0.5 rounded-md bg-neutral-800"
+                      className="px-4 py-0.5 rounded-md bg-neutral-800"
                     >
                       {file.type}
                     </motion.p>
@@ -107,20 +173,87 @@ export const FileUpload = ({ onChange }) => {
                       animate={{ opacity: 1 }}
                       layout
                     >
-                      modified{" "}
-                      {new Date(file.lastModified).toLocaleDateString()}
+                      modified {new Date(file.lastModified).toLocaleDateString()}
                     </motion.p>
                   </div>
                   <button
                     onClick={removeFile}
-                    className="absolute top-2 right-2 text-neutral-500 hover:text-neutral-300"
+                    className="absolute top-0 right-0 text-green-500 hover:text-neutral-300"
                   >
                     <IconX className="w-5 h-5" />
                   </button>
                 </motion.div>
-                <button className="bg-green-500 text-black px-4 py-2 font-semibold rounded-lg mt-2">
-                  Upload
-                </button>
+
+                {!downloadUrl && (
+                  <button 
+                    onClick={handleUpload}
+                    disabled={uploadStatus === "uploading"}
+                    className="bg-green-500 text-black px-4 py-2 font-semibold rounded-lg mt-4 w-full hover:bg-green-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploadStatus === "uploading" ? "Uploading..." : "Upload"}
+                  </button>
+                )}
+
+                {error && (
+                  <Alert variant="destructive" className="mt-4">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {downloadUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 space-y-4"
+                  >
+                    <div className="flex flex-col gap-4 p-4 bg-neutral-900 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <p className="text-neutral-300">Download Link:</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={copyToClipboard}
+                            className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+                          >
+                            <IconCopy className="w-5 h-5 text-green-500" />
+                          </button>
+                          <button
+                            onClick={toggleQR}
+                            className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+                          >
+                            <IconQrcode className="w-5 h-5 text-green-500" />
+                          </button>
+                          <a
+                            onClick={(e) => e.stopPropagation()}
+                            href={downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+                          >
+                            <IconDownload className="w-5 h-5 text-green-500" />
+                          </a>
+                        </div>
+                      </div>
+                      
+                      <input
+                        type="text"
+                        value={downloadUrl}
+                        readOnly
+                        className="w-full bg-neutral-800 text-green-300 p-2 rounded-md text-sm"
+                      />
+
+                      {showQR && (
+                        <div className="flex justify-center m-4">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&color=4ade80&bgcolor=000000`}
+                          alt="QR Code"
+                          className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
+                        />
+                      </div>
+                      
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             ) : (
               <motion.div
