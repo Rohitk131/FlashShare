@@ -27,14 +27,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "complete" | "error">("idle");
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const [showQR, setShowQR] = useState<boolean>(false);
+  const [showQR, setShowQR] = useState<boolean>(true);
 
   const handleFileChange = (newFiles: File[]) => {
     setFile(newFiles[0]);
     onChange?.(newFiles[0]);
     setDownloadUrl("");
     setError("");
-    setShowQR(false);
+    setShowQR(true);
   };
 
   const handleUpload = async (e: React.MouseEvent) => {
