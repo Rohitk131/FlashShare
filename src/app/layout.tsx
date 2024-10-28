@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -27,7 +28,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
   themeColor: "#000000",
 };
-
 export const metadata: Metadata = {
   title: {
     default: "FlashShare - Fast & Secure File Sharing",
@@ -120,6 +120,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${electrolize.className} antialiased bg-black`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
