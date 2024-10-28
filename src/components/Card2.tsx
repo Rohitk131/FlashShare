@@ -1,7 +1,13 @@
-import { Zap, Lock, QrCode } from 'lucide-react'
+import { Zap, Lock, QrCode, LucideIcon } from 'lucide-react'
+
+type Feature = {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}
 
 export default function Component() {
-  const features = [
+  const features: Feature[] = [
     { 
       title: "Lightning-Fast File Transfers", 
       description: "Upload, generate a QR code, and share files instantly across devices.",
@@ -30,7 +36,7 @@ export default function Component() {
   )
 }
 
-function FeatureCard({ title, description, icon: Icon }) {
+function FeatureCard({ title, description, icon: Icon }: Feature) {
   return (
     <div
       className="relative overflow-hidden rounded-lg h-40 transition-transform transform hover:scale-105 duration-300 ease-in-out bg-gradient-to-b from-emerald-500/20 to-transparent p-6 bg-secondary/20 backdrop-blur-xl"
