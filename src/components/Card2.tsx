@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Zap, Lock, QrCode } from 'lucide-react'
 
 export default function Component() {
@@ -21,7 +20,7 @@ export default function Component() {
   ]
 
   return (
-    <div className=" bg-black flex items-center justify-center p-4 my-32 ">
+    <div className="bg-black flex items-center justify-center p-4 my-32">
       <div className="max-w-full w-full grid grid-cols-1 md:grid-cols-3 gap-6">
         {features.map((feature, index) => (
           <FeatureCard key={index} {...feature} />
@@ -32,13 +31,9 @@ export default function Component() {
 }
 
 function FeatureCard({ title, description, icon: Icon }) {
-  const [isHovered, setIsHovered] = useState(false)
-
   return (
     <div
-      className="relative  overflow-hidden rounded-lg h-40 transition-transform transform hover:scale-105 duration-300 ease-in-out bg-gradient-to-b from-emerald-500/20 to-transparent p-6 bg-secondary/20 backdrop-blur-xl"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="relative overflow-hidden rounded-lg h-40 transition-transform transform hover:scale-105 duration-300 ease-in-out bg-gradient-to-b from-emerald-500/20 to-transparent p-6 bg-secondary/20 backdrop-blur-xl"
     >
       <div className="absolute inset-0" style={{
         backgroundImage: 'radial-gradient(circle, rgb(5,135,67), 1px, transparent 1px)',
