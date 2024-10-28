@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Upload from "@/components/Upload";
 import { AnimatedShinyTextDemo } from "@/components/CreatorButton";
 import Link from "next/link";
-
+export const runtime = 'edge'
 export default function Home() {
 
 
@@ -36,7 +36,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-green-400 glow-effect"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-green-400 glow-effect "
           >
             Lightning-Fast File Transfers
           </motion.h2>
@@ -44,7 +44,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0 glow-effect"
+            className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0 glow-effect "
           >
             Upload, generate a QR code, and share files instantly across
             devices.
