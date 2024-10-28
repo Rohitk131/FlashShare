@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "Rohit Kumar",
-      url: "https://your-website.com",
+      url: "https://rohitk.me/",
     }
   ],
   creator: "Rohit Kumar",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://flashshare.your-domain.com",
+    url: "https://flash-share.vercel.app/",
     title: "FlashShare - Fast & Secure File Sharing",
     description: "Share files instantly with FlashShare. Secure, fast, and easy-to-use file sharing platform with QR code support.",
     siteName: "FlashShare",
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     description: "Instantly share files with secure, fast, and easy-to-use platform featuring QR code support.",
     images: ["/og-image.png"],
     creator: "@gutsy_coder",
-    site: "@rohitk.me",
+    site: "rohitk.me",
   },
   icons: {
     icon: "/favicon.ico",
