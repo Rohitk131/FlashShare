@@ -72,7 +72,7 @@ export default function Home() {
       </div>
 
       {/* Bottom Hemisphere Gradient */}
-      <div className=" absolute -bottom-52 left-1/2 transform -translate-x-1/2 w-[1200px] h-[500px] rounded-t-full bg-gradient-to-t from-emerald-500/30 to-transparent blur-3xl" />
+      <div className="-z-40 absolute -bottom-52 left-1/2 transform -translate-x-1/2 w-[1200px] h-[500px] rounded-t-full bg-gradient-to-t from-emerald-500/30 to-transparent blur-3xl" />
     </div>
   );
 }
