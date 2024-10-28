@@ -39,7 +39,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="pointer-events-none whitespace-pre-wrap bg-gradient-to-b from-green-400 to-gray-900/80 bg-clip-text text-center lg:text-left text-4xl sm:text-5xl lg:text-7xl font-semibold leading-tight lg:leading-none text-transparent max-w-full lg:max-w-2xl mx-auto lg:mx-0"
           >
-            Lightning-Fast File Transfers
+            Lightning-Fast<br></br>File Transfers
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
