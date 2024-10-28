@@ -13,7 +13,7 @@ export function AnimatedShinyTextDemo() {
       >
         <GitHubLogoIcon className="w-5 h-5 text-gray-300" />
         <AnimatedShinyText className="inline-flex items-center transition ease-out text-white/65 hover:duration-300 hover:text-neutral-400">
-          <span>created by rohitk131</span>
+          <span>created by @rohitk131</span>
         </AnimatedShinyText>
       </div>
     </div>
