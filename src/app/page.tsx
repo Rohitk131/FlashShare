@@ -1,10 +1,9 @@
 "use client";
-
-
 import { motion } from "framer-motion";
 import Upload from "@/components/Upload";
 import { AnimatedShinyTextDemo } from "@/components/CreatorButton";
 import Link from "next/link";
+
 export const runtime = 'edge'
 export default function Home() {
 
@@ -61,6 +60,7 @@ export default function Home() {
             }
           `}</style>
         </div>
+     
       </main>
 
       {/* Fixed button in the bottom right corner */}

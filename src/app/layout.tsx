@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Electrolize } from 'next/font/google'
@@ -7,16 +7,26 @@ const electrolize = Electrolize({
   weight: '400',
   subsets: ['latin'],
 })
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+// Separate viewport configuration
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#000000",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -59,7 +69,7 @@ export const metadata: Metadata = {
     siteName: "FlashShare",
     images: [
       {
-        url: "/og-image.png", // Make sure to add this image to your public folder
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "FlashShare Preview",
@@ -70,14 +80,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "FlashShare - Fast & Secure File Sharing",
     description: "Instantly share files with secure, fast, and easy-to-use platform featuring QR code support.",
-    images: ["/og-image.png"], // Make sure to add this image to your public folder
-    creator: "@yourhandle",
-    site: "@flashshare",
-  },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
+    images: ["/og-image.png"],
+    creator: "@gutsy_coder",
+    site: "@rohitk.me",
   },
   icons: {
     icon: "/favicon.ico",
@@ -96,11 +101,11 @@ export const metadata: Metadata = {
   verification: {
     google: "your-google-site-verification-code",
   },
-  other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
-    "theme-color": "#000000",
+  applicationName: "FlashShare",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FlashShare",
   },
 };
 
