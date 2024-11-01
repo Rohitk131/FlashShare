@@ -1,13 +1,13 @@
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Electrolize } from 'next/font/google'
+import { Electrolize } from "next/font/google";
 
 const electrolize = Electrolize({
-  weight: '400',
-  subsets: ['latin'],
-})
+  weight: "400",
+  subsets: ["latin"],
+});
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -21,34 +21,104 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-// Separate viewport configuration
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   themeColor: "#000000",
 };
+
 export const metadata: Metadata = {
   title: {
     default: "FlashShare - Fast & Secure File Sharing",
-    template: "%s | FlashShare"
+    template: "%s | FlashShare",
   },
-  description: "Share files instantly with FlashShare. Secure, fast, and easy-to-use file sharing platform with QR code support and instant downloads.",
-  keywords: [
-    "file sharing",
-    "secure file transfer",
-    "quick share",
-    "QR code sharing",
-    "instant file upload",
-    "cloud storage",
-    "file hosting",
-    "secure file hosting"
-  ],
+  description:
+    "FlashShare allows you to share files instantly with top-level security and speed. Experience easy-to-use file sharing with QR code support, instant downloads, and reliable cloud storage.",
+    keywords: [
+      "file share online", 
+      "online file sharing",
+      "file share qr",
+      "file share qrcode",
+      "toffeshare",
+      "filetransfer",
+      "file transfer fast",
+      "online qrcode file transfer",
+      "file sharing",
+      "secure file transfer",
+      "quick share",
+      "QR code sharing",
+      "instant file upload",
+      "cloud storage",
+      "file hosting",
+      "secure file hosting",
+      "send large files",
+      "privacy-focused file sharing",
+      "high-speed file transfer",
+      "file transfer app",
+      "large file transfer online",
+      "file sharing with QR code",
+      "peer-to-peer file sharing",
+      "secure file transfer for business",
+      "encrypted file sharing",
+      "one-click file sharing",
+      "instant document transfer",
+      "large file upload",
+      "mobile file sharing",
+      "best online file sharing",
+      "file transfer with QR code",
+      "document sharing online",
+      "send files without email",
+      "file storage and sharing",
+      "cloud file transfer",
+      "file sharing for teams",
+      "unlimited file sharing",
+      "no-login file sharing",
+      "business file transfer",
+      "file sharing with password",
+      "file sharing for enterprises",
+      "share files instantly",
+      "file transfer via QR code",
+      "share documents online",
+      "fastest file transfer tool",
+      "anonymous file sharing",
+      "privacy-first file sharing",
+      "share files with QR code",
+      "instant file link sharing",
+      "cross-device file transfer",
+      "send files instantly",
+      "file storage platform",
+      "quick file transfer app",
+      "file sharing platform",
+      "personal file sharing",
+      "secure data transfer",
+      "easy file transfer online",
+      "send large files quickly",
+      "transfer large files safely",
+      "share files with no limit",
+      "secure cloud storage",
+      "password-protected sharing",
+      "file transfer without signup",
+      "transfer files fast and secure",
+      "file sharing without size limits",
+      "quick and easy file sharing",
+      "best file sharing for privacy",
+      "digital file transfer",
+      "collaborative file sharing",
+      "high-speed file uploader",
+      "secure file backup",
+      "file transfer for remote teams",
+      "file sharing made simple",
+      "file storage and sharing app",
+      "share files without registration",
+      "reliable file transfer platform"
+  ]
+,  
   authors: [
     {
       name: "Rohit Kumar",
       url: "https://rohitk.me/",
-    }
+    },
   ],
   creator: "Rohit Kumar",
   publisher: "FlashShare",
@@ -65,7 +135,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://flash-share.vercel.app/",
     title: "FlashShare - Fast & Secure File Sharing",
-    description: "Share files instantly with FlashShare. Secure, fast, and easy-to-use file sharing platform with QR code support.",
+    description:
+      "FlashShare is a secure, fast, and easy-to-use file sharing platform with QR code support for instant file transfer.",
     siteName: "FlashShare",
     images: [
       {
@@ -79,7 +150,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "FlashShare - Fast & Secure File Sharing",
-    description: "Instantly share files with secure, fast, and easy-to-use platform featuring QR code support.",
+    description:
+      "Share files instantly with FlashShare – a secure, fast, and easy-to-use platform featuring QR code support.",
     images: ["/og-image.png"],
     creator: "@gutsy_coder",
     site: "rohitk.me",
@@ -107,6 +179,31 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "FlashShare",
   },
+  additionalMetaTags: [
+    {
+      name: "language",
+      content: "English",
+    },
+    {
+      name: "geo.region",
+      content: "IN",
+    },
+    {
+      name: "geo.placename",
+      content: "India",
+    },
+  ],
+  structuredData: {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "FlashShare",
+    url: "https://flash-share.vercel.app",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://flash-share.vercel.app/?search={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  },
 };
 
 export default function RootLayout({
@@ -120,7 +217,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${electrolize.className} antialiased bg-black`}
       >
         {children}
-        <Analytics />
+        <Analytics lazy />
       </body>
     </html>
   );
