@@ -3,8 +3,10 @@ import { createClient } from "@/lib/client";
 
 const supabase = createClient();
 
-export async function GET(req: NextRequest, { params }: { params: { shortId: string } }) {
-    const { shortId } = params;
+export async function GET(req: NextRequest) {
+    // Extract the shortId from the request URL
+    const { pathname } = new URL(req.url);
+    const shortId = pathname.split("/").pop(); // Get the last part of the URL
 
     try {
         // Query the short_urls table for the original URL using the shortId
