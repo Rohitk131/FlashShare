@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         const shortId = nanoid(6); // Adjusted to match the schema length
         console.log("Generated shortId:", shortId); 
 
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from("short_urls")
             .insert([{ short_id: shortId, original_url: publicUrl }]); // Use the correct column names
 
