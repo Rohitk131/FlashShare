@@ -29,7 +29,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [showQR, setShowQR] = useState<boolean>(true);
-
+  const [shortUrl, setShortUrl] = useState<string>("");
   const handleFileChange = (newFiles: File[]) => {
     setFile(newFiles[0]);
     onChange?.(newFiles[0]);
@@ -71,7 +71,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
         .getPublicUrl(filePath);
 
       const shortURL = await GenerateShortUrl(publicUrl); 
-      setDownloadUrl(shortURL);
+      setShortUrl(shortURL)
+      setDownloadUrl(publicUrl);
       setUploadStatus("complete");
       
     } catch (err) {
@@ -93,7 +94,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const copyToClipboard = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(downloadUrl);
+      await navigator.clipboard.writeText(shortUrl);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
@@ -241,7 +242,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
                       
                       <input
                         type="text"
-                        value={downloadUrl}
+                        value={shortUrl}
                         readOnly
                         className="w-full bg-neutral-800 text-green-300 p-2 rounded-md text-sm"
                       />
