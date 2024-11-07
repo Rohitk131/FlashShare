@@ -5,7 +5,7 @@ import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload } from "@tabler/i
 import { useDropzone, FileRejection } from "react-dropzone";
 import { createClient } from '@/lib/client';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
+import GenerateShortUrl from "@/lib/actionShortUrl";
 const supabase = createClient();
 
 interface FileUploadProps {
@@ -23,6 +23,7 @@ const secondaryVariant = {
 };
 
 export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
+  
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "complete" | "error">("idle");
   const [downloadUrl, setDownloadUrl] = useState<string>("");
@@ -69,7 +70,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
         .from('files')
         .getPublicUrl(filePath);
 
-      setDownloadUrl(publicUrl);
+      const shortURL = await GenerateShortUrl(publicUrl); 
+      setDownloadUrl(shortURL);
       setUploadStatus("complete");
       
     } catch (err) {
