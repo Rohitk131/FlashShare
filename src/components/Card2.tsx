@@ -42,7 +42,7 @@ function FeatureCard({ title, description, icon: Icon }: Feature) {
       className="relative overflow-hidden rounded-lg h-40 transition-transform transform hover:scale-105 duration-300 ease-in-out bg-gradient-to-b from-emerald-500/20 to-transparent p-6 bg-secondary/20 backdrop-blur-xl"
     >
       <div className="absolute inset-0" style={{
-        backgroundImage: 'radial-gradient(circle, rgb(5,135,67), 1px, transparent 1px)',
+        backgroundImage: 'radial-gradient(circle, rgb(5,135,67), 0.7px, transparent 1px)',
         backgroundSize: '20px 20px',
       }} />
       <div className="relative h-full flex items-center justify-between z-10">
