@@ -5,7 +5,6 @@ import {
   IconFileText,
   IconTerminal2,
 } from "@tabler/icons-react";
-import Image from "next/image";
 
 export function FloatingDockDemo() {
   const links = [
@@ -22,14 +21,14 @@ export function FloatingDockDemo() {
       icon: (
         <IconTerminal2 className="h-full w-full text-green-400 dark:text-neutral-300" />
       ),
-      href: "/code-share",
+      href: "code-snippets",
     },
     {
       title: "Text File",
       icon: (
         <IconFileText className="h-full w-full text-green-400 dark:text-neutral-300" />
       ),
-      href: "/txt-share",
+      href: "txt-share",
     },
   ];
   return (
