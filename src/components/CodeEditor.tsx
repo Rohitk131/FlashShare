@@ -12,7 +12,7 @@ import { php } from '@codemirror/lang-php'
 import { vscodeDark } from '@uiw/codemirror-theme-vscode'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+
 import { Moon, Sun } from 'lucide-react'
 
 export default function CodeEditor() {
