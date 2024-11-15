@@ -89,10 +89,10 @@ const FloatingDockDesktop = ({
   items,
   className,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[]
-  className?: string
+  items: { title: string; icon: React.ReactNode; href: string }[];
+  className?: string;
 }) => {
-  let mouseY = useMotionValue(Infinity)
+  const mouseY = useMotionValue(Infinity);
   return (
     <motion.div
       onMouseMove={(e) => mouseY.set(e.pageY)}
@@ -106,8 +106,8 @@ const FloatingDockDesktop = ({
         <IconContainer mouseY={mouseY} key={item.title} {...item} />
       ))}
     </motion.div>
-  )
-}
+  );
+};
 
 function IconContainer({
   mouseY,
