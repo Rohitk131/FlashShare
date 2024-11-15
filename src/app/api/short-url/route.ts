@@ -13,13 +13,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Public URL not provided" }, { status: 400 });
         }
 
-        const shortId = nanoid(6); // Adjusted to match the schema length
+        const shortId = nanoid(6); 
         console.log("Generated shortId:", shortId); 
 
         const { error } = await supabase
             .from("short_urls")
-            .insert([{ short_id: shortId, original_url: publicUrl }]); // Use the correct column names
-
+            .insert([{ short_id: shortId, original_url: publicUrl }]); 
         if (error) {
             console.error("Database error:", error);
             return NextResponse.json({ error: "Database error" }, { status: 500 });
