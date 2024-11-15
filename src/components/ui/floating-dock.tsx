@@ -120,36 +120,36 @@ function IconContainer({
   icon: React.ReactNode
   href: string
 }) {
-  let ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
 
-  let distance = useTransform(mouseY, (val) => {
-    let bounds = ref.current?.getBoundingClientRect() ?? { y: 0, height: 0 }
+  const distance = useTransform(mouseY, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { y: 0, height: 0 }
     return val - bounds.y - bounds.height / 2
   })
 
-  let widthTransform = useTransform(distance, [-100, 0, 100], [48, 64, 48])
-  let heightTransform = useTransform(distance, [-100, 0, 100], [48, 64, 48])
+  const widthTransform = useTransform(distance, [-100, 0, 100], [48, 64, 48])
+  const heightTransform = useTransform(distance, [-100, 0, 100], [48, 64, 48])
 
-  let widthTransformIcon = useTransform(distance, [-100, 0, 100], [24, 32, 24])
-  let heightTransformIcon = useTransform(distance, [-100, 0, 100], [24, 32, 24])
+  const widthTransformIcon = useTransform(distance, [-100, 0, 100], [24, 32, 24])
+  const heightTransformIcon = useTransform(distance, [-100, 0, 100], [24, 32, 24])
 
-  let width = useSpring(widthTransform, {
+  const width = useSpring(widthTransform, {
     mass: 0.1,
     stiffness: 300,
     damping: 20,
   })
-  let height = useSpring(heightTransform, {
+  const height = useSpring(heightTransform, {
     mass: 0.1,
     stiffness: 300,
     damping: 20,
   })
 
-  let widthIcon = useSpring(widthTransformIcon, {
+  const widthIcon = useSpring(widthTransformIcon, {
     mass: 0.1,
     stiffness: 300,
     damping: 20,
   })
-  let heightIcon = useSpring(heightTransformIcon, {
+  const heightIcon = useSpring(heightTransformIcon, {
     mass: 0.1,
     stiffness: 300,
     damping: 20,

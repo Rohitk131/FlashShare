@@ -5,17 +5,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { AnimatedShinyTextDemo } from "@/components/CreatorButton"
 import { FloatingDockDemo } from '@/components/Dock'
-import { Button } from "@/components/ui/button"
+
 import CodeEditor from "@/components/CodeEditor"; 
 
 export default function Home() {
-  const [noteContent, setNoteContent] = useState("")
 
-  const handleShare = () => {
-    // Implement your share functionality here
-    console.log("Sharing note:", noteContent)
-    // You could open a modal, copy to clipboard, or send to an API
-  }
+
+
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
