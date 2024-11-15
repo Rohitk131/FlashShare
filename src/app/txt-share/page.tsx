@@ -43,30 +43,33 @@ export default function Home() {
         throw new Error("Failed to upload note.");
       }
   
-      // Retrieve the public URL for the uploaded file
-      const { data: publicUrlData, error: publicUrlError } = supabase.storage
-        .from("files")
-        .getPublicUrl(data.path);
-  
-      if (publicUrlError) {
-        console.error("Public URL retrieval error:", publicUrlError);
-        throw new Error("Failed to retrieve public URL.");
-      }
-  
-      const publicUrl = publicUrlData.publicUrl;
-      setDataUrl(publicUrl);
+      const { data: publicUrlData } = await supabase.storage
+      .from("files")
+      .getPublicUrl(data.path);
+    
+ 
+    
+    const publicUrl = publicUrlData.publicUrl;
+    setDataUrl(publicUrl);
   
       // Optionally generate a short URL
       const shortURL = await GenerateShortUrl(publicUrl);
       setShortUrl(shortURL);
   
       setError(""); // Clear any previous errors
-    } catch (err) {
-      console.error("Error sharing note:", err.message || err);
-      setError("Failed to share note. Please try again.");
+    } 
+    catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Error sharing note:", err.message);
+        setError("Failed to share note. Please try again.");
+      } else {
+        console.error("Error sharing note:", err); // For unknown error types
+        setError("An unknown error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
+    
   };
   
 
