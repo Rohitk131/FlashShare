@@ -1,83 +1,118 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { AnimatedShinyTextDemo } from "@/components/CreatorButton";
-import { FloatingDockDemo } from "@/components/Dock";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { IconQrcode, IconCopy, IconDownload } from "@tabler/icons-react";
-import GenerateShortUrl from "@/lib/actionShortUrl";
+import React, { useState, useCallback } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IconQrcode, IconCopy, IconDownload, IconX } from '@tabler/icons-react';
+import { Moon, Sun } from 'lucide-react';
+import { AnimatedShinyTextDemo } from '@/components/CreatorButton';
+import { FloatingDockDemo } from '@/components/Dock';
+import GenerateShortUrl from '@/lib/actionShortUrl';
 import { createClient } from '@/lib/client';
+import Confetti from 'react-confetti';
 
 const supabase = createClient();
 
-export default function Home() {
-  const [noteContent, setNoteContent] = useState("");
-  const [shortUrl, setShortUrl] = useState("");
-  const [dataUrl, setDataUrl] = useState(""); 
+const Modal = ({ isOpen, onClose, children }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-gray-800 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            aria-label="Close modal"
+          >
+            <IconX size={24} />
+          </button>
+          {children}
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+export default function FlashShare() {
+  const [noteContent, setNoteContent] = useState("# Welcome to FlashShare\n\nStart typing your note here...");
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [shortUrl, setShortUrl] = useState('');
+  const [dataUrl, setDataUrl] = useState('');
   const [showQR, setShowQR] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const handleNoteChange = useCallback((value: string) => {
+    setNoteContent(value);
+  }, []);
 
   const handleShare = async () => {
     setLoading(true);
     try {
       if (!noteContent.trim()) {
-        setError("Note content cannot be empty.");
+        setError('Note content cannot be empty.');
         setLoading(false);
         return;
       }
-  
-      // Generate a unique file name for the note
-      const fileName = `note-${Date.now()}.txt`;
-  
-      // Upload the note content to the 'files' bucket
+
+      const fileName = `note-${Date.now()}.md`;
       const { data, error: uploadError } = await supabase.storage
-        .from("files") // Using 'files' bucket
-        .upload(fileName, new Blob([noteContent], { type: "text/plain" }));
-  
+        .from('files')
+        .upload(fileName, new Blob([noteContent], { type: 'text/markdown' }));
+
       if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error("Failed to upload note.");
+        console.error('Upload error:', uploadError);
+        throw new Error('Failed to upload note.');
       }
-  
-      const { data: publicUrlData } = await supabase.storage
-      .from("files")
-      .getPublicUrl(data.path);
-    
- 
-    
-    const publicUrl = publicUrlData.publicUrl;
-    setDataUrl(publicUrl);
-  
-      // Optionally generate a short URL
+
+      const { data: publicUrlData } = await supabase.storage.from('files').getPublicUrl(data.path);
+
+      const publicUrl = publicUrlData.publicUrl;
+      setDataUrl(publicUrl);
+
       const shortURL = await GenerateShortUrl(publicUrl);
       setShortUrl(shortURL);
-  
-      setError(""); // Clear any previous errors
-    } 
-    catch (err: unknown) {
+
+      setError('');
+      setIsModalOpen(true);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
+    } catch (err: unknown) {
       if (err instanceof Error) {
-        console.error("Error sharing note:", err.message);
-        setError("Failed to share note. Please try again.");
+        console.error('Error sharing note:', err.message);
+        setError('Failed to share note. Please try again.');
       } else {
-        console.error("Error sharing note:", err); // For unknown error types
-        setError("An unknown error occurred. Please try again.");
+        console.error('Error sharing note:', err);
+        setError('An unknown error occurred. Please try again.');
       }
     } finally {
       setLoading(false);
     }
-    
   };
-  
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shortUrl || dataUrl);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      console.error('Failed to copy:', err);
     }
   };
 
@@ -87,17 +122,26 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {showConfetti && (
+        <div className="fixed inset-0 z-[60] pointer-events-none">
+          <Confetti width={window.innerWidth} height={window.innerHeight} />
+        </div>
+      )}
       {/* Top Radial Gradient */}
       <div className="absolute -top-96 left-1/2 transform -translate-x-1/2 w-[1200px] h-[900px] rounded-full bg-gradient-to-b from-emerald-500/30 to-transparent blur-3xl" />
 
-      <header className="mt-2 mx-4 relative py-6 px-4 sm:px-6 lg:px-8 flex justify-between bg-secondary/15 shadow-lg shadow-neutral-600/5 backdrop-blur-2xl border border-green-400/20 p-6 rounded-2xl">
+      <header className="mt-2 mx-4 relative py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center bg-secondary/15 shadow-lg shadow-neutral-600/5 backdrop-blur-2xl border border-green-400/20 p-6 rounded-2xl">
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-600 to-green-700 animate-pulse inline-block">
           Flash
           <span className="bg-clip-text bg-gradient-to-r from-gray-200 to-gray-600">
             Share
           </span>
         </h1>
-
+        <div className="flex items-center space-x-2">
+          <Sun className="h-5 w-5" />
+          <Switch checked={isDarkMode} onCheckedChange={setIsDarkMode} />
+          <Moon className="h-5 w-5" />
+        </div>
         <div className="absolute top-3 left-5 text-green-400 text-lg animate-bounce">
           <Image src="/bolt.png" width={20} height={20} alt="bolt image" />
         </div>
@@ -111,76 +155,71 @@ export default function Home() {
             <h2 className="text-lg font-medium text-gray-200">Notepad</h2>
             <Button
               onClick={handleShare}
-              className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-md transition-all"
+              className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
             >
-              {loading ? "Sharing..." : "Share"}
+              {loading ? 'Sharing...' : 'Share'}
             </Button>
           </div>
-          <textarea
-            className="w-full h-[300px] bg-gray-900 p-6 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-b-xl"
-            placeholder="Start typing your note here..."
+          <CodeMirror
             value={noteContent}
-            onChange={(e) => setNoteContent(e.target.value)}
+            height="500px"
+            theme={isDarkMode ? vscodeDark : undefined}
+            extensions={[markdown()]}
+            onChange={handleNoteChange}
+            className="rounded-lg overflow-hidden"
           />
-
-          {dataUrl && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 space-y-4"
-            >
-              <div className="flex flex-col gap-4 p-4 bg-neutral-900 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <p className="text-neutral-300">Access Raw Data:</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={copyToClipboard}
-                      className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-                    >
-                      <IconCopy className="w-5 h-5 text-green-500" />
-                    </button>
-                    <button
-                      onClick={toggleQR}
-                      className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-                    >
-                      <IconQrcode className="w-5 h-5 text-green-500" />
-                    </button>
-                    <a
-                      href={dataUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-                    >
-                      <IconDownload className="w-5 h-5 text-green-500" />
-                    </a>
-                  </div>
-                </div>
-
-                <input
-                  type="text"
-                  value={shortUrl}
-                  readOnly
-                  className="w-full bg-neutral-800 text-green-300 p-2 rounded-md text-sm"
-                />
-
-                {showQR && (
-                  <div className="flex justify-center m-4">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                        shortUrl || dataUrl
-                      )}&color=42C773&bgcolor=000000`}
-                      alt="QR Code"
-                      className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
-                    />
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {error && <div className="text-red-500 mt-4">{error}</div>}
         </div>
       </main>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <h2 className="text-2xl font-bold mb-6 text-green-400">Note Shared Successfully!</h2>
+        <div className="space-y-6">
+          <div>
+            <p className="text-gray-300 mb-2">Shareable Link:</p>
+            <div className="flex items-center space-x-2 bg-gray-700 rounded-lg p-2">
+              <input
+                type="text"
+                value={shortUrl || dataUrl}
+                readOnly
+                className="bg-transparent text-white flex-grow outline-none"
+              />
+              <button onClick={copyToClipboard} className="text-green-400 hover:text-green-300 transition-colors" aria-label="Copy link">
+                <IconCopy size={20} />
+              </button>
+              <button onClick={toggleQR} className="text-green-400 hover:text-green-300 transition-colors" aria-label="Toggle QR code">
+                <IconQrcode size={20} />
+              </button>
+              <a
+                href={dataUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-400 hover:text-green-300 transition-colors"
+                aria-label="Download note"
+              >
+                <IconDownload size={20} />
+              </a>
+            </div>
+          </div>
+          <AnimatePresence>
+            {showQR && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex justify-center overflow-hidden"
+              >
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                    shortUrl || dataUrl
+                  )}&color=4ADE80&bgcolor=1F2937`}
+                  alt="QR Code"
+                  className="rounded-lg shadow-lg"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </Modal>
 
       <div className="fixed bottom-4 right-4">
         <Link href="https://github.com/Rohitk131">
@@ -189,6 +228,8 @@ export default function Home() {
       </div>
 
       <div className="absolute -bottom-36 left-1/2 transform -translate-x-1/2 w-[1400px] h-[600px] rounded-t-full bg-gradient-to-t from-emerald-500/30 to-transparent blur-3xl" />
+
+      {error && <div className="text-red-500 mt-4">{error}</div>}
     </div>
   );
 }
