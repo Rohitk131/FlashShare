@@ -1,20 +1,15 @@
 import { cn } from "@/lib/utils";
 import React, { useState } from "react";
-import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload} from "@tabler/icons-react";
+import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload } from "@tabler/icons-react";
 import { useDropzone, FileRejection } from "react-dropzone";
 import { createClient } from '@/lib/client';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import GenerateShortUrl from "@/lib/actionShortUrl";
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
-
+import JSZip from 'jszip';
 
 const supabase = createClient();
-
-interface FileUploadProps {
-  onChange?: (file: File | null) => void;
-}
-
 const mainVariant = {
   initial: { x: 0, y: 0 },
   animate: { x: 20, y: -20, opacity: 0.9 },
@@ -25,12 +20,14 @@ const secondaryVariant = {
   animate: { opacity: 1 },
 };
 
+interface FileUploadProps {
+  onChange?: (files: File[]) => void;
+}
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
-
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
   <AnimatePresence>
     {isOpen && (
@@ -63,7 +60,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
 );
 
 export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "complete" | "error">("idle");
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -72,18 +69,29 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
   const handleFileChange = (newFiles: File[]) => {
-    setFile(newFiles[0]);
-    onChange?.(newFiles[0]);
+    setFiles(prev => [...prev, ...newFiles]);
+    onChange?.(newFiles);
     setDownloadUrl("");
     setError("");
     setShowQR(true);
   };
 
+  const createZipFile = async (files: File[]): Promise<Blob> => {
+    const zip = new JSZip();
+    
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer();
+      zip.file(file.name, arrayBuffer);
+    }
+    
+    return await zip.generateAsync({ type: "blob" });
+  };
+
   const handleUpload = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      if (!file) {
-        throw new Error('Please select a file first');
+      if (files.length === 0) {
+        throw new Error('Please select at least one file');
       }
 
       setUploadStatus("uploading");
@@ -91,16 +99,27 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
       
       const timestamp = new Date().getTime();
       const randomString = Math.random().toString(36).substring(7);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${timestamp}-${randomString}.${fileExt}`;
+
+      let uploadFile: File | Blob;
+      let fileName: string;
+
+      if (files.length === 1) {
+        uploadFile = files[0];
+        const fileExt = files[0].name.split('.').pop();
+        fileName = `${timestamp}-${randomString}.${fileExt}`;
+      } else {
+        uploadFile = await createZipFile(files);
+        fileName = `${timestamp}-${randomString}.zip`;
+      }
+
       const filePath = `public/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('files')
-        .upload(filePath, file, {
+        .upload(filePath, uploadFile, {
           cacheControl: '3600',
           upsert: false,
-          contentType: file.type
+          contentType: files.length === 1 ? files[0].type : 'application/zip'
         });
 
       if (uploadError) {
@@ -125,13 +144,15 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
     }
   };
 
-  const removeFile = (e: React.MouseEvent) => {
+  const removeFile = (index: number) => (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFile(null);
-    onChange?.(null);
-    setDownloadUrl("");
-    setError("");
-    setShowQR(false);
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    if (files.length === 1) {
+      onChange?.([]);
+      setDownloadUrl("");
+      setError("");
+      setShowQR(false);
+    }
   };
 
   const copyToClipboard = async (e: React.MouseEvent) => {
@@ -149,7 +170,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    multiple: false,
+    multiple: true,
     noClick: false,
     maxSize: 50 * 1024 * 1024,
     onDrop: handleFileChange,
@@ -158,6 +179,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
       setError(error);
     },
   });
+
+  const getTotalSize = () => {
+    return files.reduce((acc, file) => acc + file.size, 0);
+  };
 
   return (
     <div className="w-full" {...getRootProps()}>
@@ -176,64 +201,79 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
         </div>
         <div className="flex flex-col items-center justify-center">
           <p className="relative z-20 font-sans font-bold text-neutral-300 text-base">
-            Upload file
+            Upload files
           </p>
           <p className="relative z-20 font-sans font-normal text-neutral-400 text-base mt-2">
             Drag or drop your files here or click to upload
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
-            {file ? (
+            {files.length > 0 ? (
               <div onClick={(e) => e.stopPropagation()}>
-                <motion.div
-                  key="file-upload"
-                  layoutId="file-upload"
-                  className={cn(
-                    "relative overflow-hidden z-40 bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
-                    "shadow-sm"
-                  )}
-                >
-                  <div className="flex justify-between w-full items-center gap-4">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="text-base text-neutral-300 truncate max-w-xs"
+                <div className="space-y-4">
+                  {files.map((file, index) => (
+                    <motion.div
+                      key={`${file.name}-${index}`}
+                      layoutId={`file-upload-${index}`}
+                      className={cn(
+                        "relative overflow-hidden z-40 bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 w-full mx-auto rounded-md",
+                        "shadow-sm"
+                      )}
                     >
-                      {file.name}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="rounded-lg px-2 py-1 w-fit flex-shrink-0 text-sm bg-neutral-800 text-white shadow-input"
-                    >
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
-                    </motion.p>
+                      <div className="flex justify-between w-full items-center gap-4">
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          layout
+                          className="text-base text-neutral-300 truncate max-w-xs"
+                        >
+                          {file.name}
+                        </motion.p>
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          layout
+                          className="rounded-lg px-2 py-1 w-fit flex-shrink-0 text-sm bg-neutral-800 text-white shadow-input"
+                        >
+                          {(file.size / (1024 * 1024)).toFixed(2)} MB
+                        </motion.p>
+                      </div>
+                      <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          layout
+                          className="px-4 py-0.5 rounded-md bg-neutral-800"
+                        >
+                          {file.type || 'application/octet-stream'}
+                        </motion.p>
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          layout
+                        >
+                          modified {new Date(file.lastModified).toLocaleDateString()}
+                        </motion.p>
+                      </div>
+                      <button
+                        onClick={removeFile(index)}
+                        className="absolute top-0 right-0 text-green-500 hover:text-neutral-300"
+                      >
+                        <IconX className="w-5 h-5" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {files.length > 1 && (
+                  <div className="mt-4 p-4 bg-neutral-900 rounded-md">
+                    <p className="text-neutral-300">
+                      Total Size: {(getTotalSize() / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                    <p className="text-neutral-400 text-sm">
+                      Files will be compressed into a ZIP archive
+                    </p>
                   </div>
-                  <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="px-4 py-0.5 rounded-md bg-neutral-800"
-                    >
-                      {file.type}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                    >
-                      modified {new Date(file.lastModified).toLocaleDateString()}
-                    </motion.p>
-                  </div>
-                  <button
-                    onClick={removeFile}
-                    className="absolute top-0 right-0 text-green-500 hover:text-neutral-300"
-                  >
-                    <IconX className="w-5 h-5" />
-                  </button>
-                </motion.div>
+                )}
 
                 {!downloadUrl && (
                   <button 
@@ -331,7 +371,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
                     animate={{ opacity: 1 }}
                     className="text-neutral-600 flex flex-col items-center"
                   >
-                    Drop it
+                    Drop them
                     <IconUpload className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                   </motion.p>
                 ) : (
@@ -339,7 +379,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
                 )}
               </motion.div>
             )}
-            {!file && (
+            {!files.length && (
               <motion.div
                 variants={secondaryVariant}
                 className="absolute opacity-0 border border-dashed border-green-400 inset-0 z-30 bg-transparent flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md"
@@ -351,7 +391,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
     </div>
   );
 };
-
 export function GridPattern(): JSX.Element {
   const columns = 41;
   const rows = 11;
