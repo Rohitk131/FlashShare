@@ -38,7 +38,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gray-800 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
+          className="bg-secondary/60 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
         >
           <button
             onClick={onClose}
@@ -246,7 +246,7 @@ export default function CodeEditorNoteSharing() {
                       shortUrl || dataUrl
                     )}&color=4ADE80&bgcolor=1F2937`}
                     alt="QR Code"
-                    className="rounded-lg shadow-lg"
+                    className="rounded-2xl shadow-lg"
                   />
                 </motion.div>
               )}

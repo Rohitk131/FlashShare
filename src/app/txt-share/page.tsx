@@ -8,13 +8,13 @@ import { markdown } from '@codemirror/lang-markdown';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
 import { IconQrcode, IconCopy, IconDownload } from '@tabler/icons-react';
 import { Moon, Sun } from 'lucide-react';
 import { AnimatedShinyTextDemo } from '@/components/CreatorButton';
 import { FloatingDockDemo } from '@/components/Dock';
 import GenerateShortUrl from '@/lib/actionShortUrl';
 import { createClient } from '@/lib/client';
+import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 
 const supabase = createClient();
@@ -28,14 +28,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div
-          className="bg-white p-4 rounded-md"
+          className="bg-secondary/60 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           exit={{ scale: 0.8 }}
@@ -211,7 +211,7 @@ export default function FlashShare() {
                     shortUrl || dataUrl
                   )}&color=4ADE80&bgcolor=1F2937`}
                   alt="QR Code"
-                  className="rounded-lg shadow-lg"
+                  className="rounded-2xl shadow-lg"
                 />
               </motion.div>
             )}

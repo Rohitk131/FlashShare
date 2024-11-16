@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils";
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload } from "@tabler/icons-react";
+import { IconUpload, IconX, IconQrcode, IconCopy, IconDownload} from "@tabler/icons-react";
 import { useDropzone, FileRejection } from "react-dropzone";
 import { createClient } from '@/lib/client';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import GenerateShortUrl from "@/lib/actionShortUrl";
+import { motion, AnimatePresence } from 'framer-motion';
+import Confetti from 'react-confetti';
+
 const supabase = createClient();
 
 interface FileUploadProps {
@@ -22,6 +24,44 @@ const secondaryVariant = {
   animate: { opacity: 1 },
 };
 
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
+        <motion.div
+          className="bg-secondary/60 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0.8 }}
+          onClick={(e) => e.stopPropagation()} 
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1 rounded-full hover:bg-neutral-800 transition-colors text-gray-400 hover:text-gray-200"
+            aria-label="Close modal"
+          >
+            <IconX className="w-5 h-5" />
+          </button>
+          {children}
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+
 export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   
   const [file, setFile] = useState<File | null>(null);
@@ -30,6 +70,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const [error, setError] = useState<string>("");
   const [showQR, setShowQR] = useState<boolean>(true);
   const [shortUrl, setShortUrl] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
   const handleFileChange = (newFiles: File[]) => {
     setFile(newFiles[0]);
     onChange?.(newFiles[0]);
@@ -74,6 +117,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
       setShortUrl(shortURL)
       setDownloadUrl(publicUrl);
       setUploadStatus("complete");
+      setIsModalOpen(true);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
       
     } catch (err) {
       console.error('Upload error:', err);
@@ -118,6 +164,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
 
   return (
     <div className="w-full" {...getRootProps()}>
+      {showConfetti && (
+        <div className="fixed inset-0 z-[60] pointer-events-none">
+          <Confetti width={window.innerWidth} height={window.innerHeight} />
+        </div>
+      )}
       <motion.div
         whileHover="animate"
         className="p-10 group/file block rounded-xl cursor-pointer w-full relative overflow-hidden"
@@ -206,59 +257,65 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
                   </Alert>
                 )}
 
-                {downloadUrl && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 space-y-4"
-                  >
-                    <div className="flex flex-col gap-4 p-4 bg-neutral-900 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <p className="text-neutral-300">Download Link:</p>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={copyToClipboard}
-                            className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-                          >
-                            <IconCopy className="w-5 h-5 text-green-500" />
-                          </button>
-                          <button
-                            onClick={toggleQR}
-                            className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-                          >
-                            <IconQrcode className="w-5 h-5 text-green-500" />
-                          </button>
-                          <a
-                            onClick={(e) => e.stopPropagation()}
-                            href={downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-                          >
-                            <IconDownload className="w-5 h-5 text-green-500" />
-                          </a>
-                        </div>
-                      </div>
-                      
-                      <input
-                        type="text"
-                        value={shortUrl}
-                        readOnly
-                        className="w-full bg-neutral-800 text-green-300 p-2 rounded-md text-sm"
-                      />
+<Modal isOpen={Boolean(downloadUrl)} onClose={() => setDownloadUrl('')}>
+  <h2 className="text-2xl font-bold mb-6 text-green-400">Download Ready!</h2>
+  <div className="space-y-6">
+    <div>
+      <p className="text-gray-300 mb-2">Download Link:</p>
+      <div className="flex items-center space-x-2 bg-neutral-900 rounded-lg p-2">
+        <input
+          type="text"
+          value={shortUrl || downloadUrl}
+          readOnly
+          className="bg-transparent text-green-300 flex-grow outline-none"
+        />
+        <button
+          onClick={copyToClipboard}
+          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+          aria-label="Copy link"
+        >
+          <IconCopy className="w-5 h-5 text-green-500" />
+        </button>
+        <button
+          onClick={toggleQR}
+          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+          aria-label="Toggle QR code"
+        >
+          <IconQrcode className="w-5 h-5 text-green-500" />
+        </button>
+        <a
+          href={downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+          aria-label="Download file"
+        >
+          <IconDownload className="w-5 h-5 text-green-500" />
+        </a>
+      </div>
+    </div>
+    <AnimatePresence>
+      {showQR && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="flex justify-center overflow-hidden"
+        >
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+              downloadUrl
+            )}&color=42C773&bgcolor=000000`}
+            alt="QR Code"
+            className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+</Modal>
 
-                      {showQR && (
-                        <div className="flex justify-center m-4">
-                          <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}&color=42C773&bgcolor=000000`}
-                            alt="QR Code"
-                            className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
+
               </div>
             ) : (
               <motion.div
