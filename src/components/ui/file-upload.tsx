@@ -297,14 +297,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
                           className="flex justify-center overflow-hidden"
                         >
                           <div className="relative w-48 h-48">
-                            <Image
+                            <img
                               src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                                 downloadUrl
                               )}&color=42C773&bgcolor=000000`}
                               alt="QR Code"
                               className="rounded-3xl p-2 border-2 border-green-400"
-                              fill
-                              priority
                             />
                           </div>
                         </motion.div>
