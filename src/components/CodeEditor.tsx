@@ -20,8 +20,12 @@ import { createClient } from '@/lib/client';
 import Confetti from 'react-confetti';
 
 const supabase = createClient();
-
-const Modal = ({ isOpen, onClose, children }) => (
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div

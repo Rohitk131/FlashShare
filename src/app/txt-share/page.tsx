@@ -6,11 +6,10 @@ import Image from 'next/image';
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IconQrcode, IconCopy, IconDownload, IconX } from '@tabler/icons-react';
+import { IconQrcode, IconCopy, IconDownload } from '@tabler/icons-react';
 import { Moon, Sun } from 'lucide-react';
 import { AnimatedShinyTextDemo } from '@/components/CreatorButton';
 import { FloatingDockDemo } from '@/components/Dock';
@@ -20,35 +19,34 @@ import Confetti from 'react-confetti';
 
 const supabase = createClient();
 
-const Modal = ({ isOpen, onClose, children }) => (
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div
+        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg"
+        onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gray-800 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
+          className="bg-white p-4 rounded-md"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0.8 }}
+          onClick={(e) => e.stopPropagation()} 
         >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-            aria-label="Close modal"
-          >
-            <IconX size={24} />
-          </button>
           {children}
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
 );
-
 export default function FlashShare() {
   const [noteContent, setNoteContent] = useState("# Welcome to FlashShare\n\nStart typing your note here...");
   const [isDarkMode, setIsDarkMode] = useState(true);

@@ -10,9 +10,6 @@ import CodeEditor from "@/components/CodeEditor";
 
 export default function Home() {
 
-
-
-
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Top Radial Gradient */}
