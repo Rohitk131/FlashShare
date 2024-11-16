@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import GenerateShortUrl from "@/lib/actionShortUrl";
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
-import Image from 'next/image'; // Added Next.js Image component
+
 
 const supabase = createClient();
 
