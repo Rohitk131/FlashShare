@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import GenerateShortUrl from "@/lib/actionShortUrl";
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
+import Image from 'next/image'; // Added Next.js Image component
 
 const supabase = createClient();
 
@@ -34,14 +35,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div
-          className="bg-secondary/60 rounded-xl p-6 w-full max-w-md relative shadow-2xl border border-gray-700"
+          className="bg-secondary/80 rounded-xl p-6 w-full max-w-lg relative shadow-2xl border border-gray-700"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           exit={{ scale: 0.8 }}
@@ -61,16 +62,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => (
   </AnimatePresence>
 );
 
-
 export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
-  
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "complete" | "error">("idle");
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [showQR, setShowQR] = useState<boolean>(true);
   const [shortUrl, setShortUrl] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
   const handleFileChange = (newFiles: File[]) => {
@@ -114,12 +112,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
         .getPublicUrl(filePath);
 
       const shortURL = await GenerateShortUrl(publicUrl); 
-      setShortUrl(shortURL)
+      setShortUrl(shortURL);
       setDownloadUrl(publicUrl);
       setUploadStatus("complete");
-      setIsModalOpen(true);
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
       
     } catch (err) {
       console.error('Upload error:', err);
@@ -173,10 +170,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
         whileHover="animate"
         className="p-10 group/file block rounded-xl cursor-pointer w-full relative overflow-hidden"
       >
-        <input
-          {...getInputProps()}
-          className="hidden"
-        />
+        <input {...getInputProps()} className="hidden" />
         <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
           <GridPattern />
         </div>
@@ -257,65 +251,67 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
                   </Alert>
                 )}
 
-<Modal isOpen={Boolean(downloadUrl)} onClose={() => setDownloadUrl('')}>
-  <h2 className="text-2xl font-bold mb-6 text-green-400">Download Ready!</h2>
-  <div className="space-y-6">
-    <div>
-      <p className="text-gray-300 mb-2">Download Link:</p>
-      <div className="flex items-center space-x-2 bg-neutral-900 rounded-lg p-2">
-        <input
-          type="text"
-          value={shortUrl || downloadUrl}
-          readOnly
-          className="bg-transparent text-green-300 flex-grow outline-none"
-        />
-        <button
-          onClick={copyToClipboard}
-          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-          aria-label="Copy link"
-        >
-          <IconCopy className="w-5 h-5 text-green-500" />
-        </button>
-        <button
-          onClick={toggleQR}
-          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-          aria-label="Toggle QR code"
-        >
-          <IconQrcode className="w-5 h-5 text-green-500" />
-        </button>
-        <a
-          href={downloadUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
-          aria-label="Download file"
-        >
-          <IconDownload className="w-5 h-5 text-green-500" />
-        </a>
-      </div>
-    </div>
-    <AnimatePresence>
-      {showQR && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="flex justify-center overflow-hidden"
-        >
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-              downloadUrl
-            )}&color=42C773&bgcolor=000000`}
-            alt="QR Code"
-            className="w-48 h-48 rounded-3xl p-2 border-2 border-green-400"
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
-</Modal>
-
-
+                <Modal isOpen={Boolean(downloadUrl)} onClose={() => setDownloadUrl('')}>
+                  <h2 className="text-2xl font-bold mb-6 text-green-400">Download Ready!</h2>
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-gray-300 mb-2">Download Link:</p>
+                      <div className="flex items-center space-x-2 bg-neutral-900 rounded-lg p-2">
+                        <input
+                          type="text"
+                          value={shortUrl || downloadUrl}
+                          readOnly
+                          className="bg-transparent text-green-300 flex-grow outline-none"
+                        />
+                        <button
+                          onClick={copyToClipboard}
+                          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+                          aria-label="Copy link"
+                        >
+                          <IconCopy className="w-5 h-5 text-green-500" />
+                        </button>
+                        <button
+                          onClick={toggleQR}
+                          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+                          aria-label="Toggle QR code"
+                        >
+                          <IconQrcode className="w-5 h-5 text-green-500" />
+                        </button>
+                        <a
+                          href={downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 hover:bg-neutral-800 rounded-md transition-colors"
+                          aria-label="Download file"
+                        >
+                          <IconDownload className="w-5 h-5 text-green-500" />
+                        </a>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {showQR && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="flex justify-center overflow-hidden"
+                        >
+                          <div className="relative w-48 h-48">
+                            <Image
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                downloadUrl
+                              )}&color=42C773&bgcolor=000000`}
+                              alt="QR Code"
+                              className="rounded-3xl p-2 border-2 border-green-400"
+                              fill
+                              priority
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Modal>
               </div>
             ) : (
               <motion.div
