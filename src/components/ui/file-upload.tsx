@@ -90,28 +90,33 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const handleUpload = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-        if (files.length === 0) {
-            throw new Error('Please select at least one file');
-        }
-
-        setUploadStatus("uploading");
-        setError("");
-
-        let uploadFile: File | Blob;
-        let fileName: string;
-
-        if (files.length === 1) {
-            // Use the original filename
-            uploadFile = files[0];
-            fileName = files[0].name;
-        } else {
-            // For multiple files, create a zip and give a default name
-            uploadFile = await createZipFile(files);
-            fileName = `archive-${new Date().getTime()}.zip`;
-        }
-
-        const filePath = `public/${fileName}`;
-
+      if (files.length === 0) {
+        throw new Error('Please select at least one file');
+    }
+    
+    setUploadStatus("uploading");
+    setError("");
+    
+    let uploadFile: File | Blob;
+    let fileName: string;
+    
+    if (files.length === 1) {
+        // Use the original filename but add random numbers and date
+        const fileExt = files[0].name.split('.').pop(); // Get file extension
+        const baseFileName = files[0].name.slice(0, -(fileExt?.length ?? 0) - 1); // Remove extension
+        const randomNum = Math.floor(Math.random() * 900 + 100); // Random 3-digit number
+        const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        fileName = `${baseFileName}-${randomNum}-${today}.${fileExt}`;
+        uploadFile = files[0];
+    } else {
+        // For multiple files, create a zip with random numbers and date
+        uploadFile = await createZipFile(files);
+        const randomNum = Math.floor(Math.random() * 900 + 100); // Random 3-digit number
+        const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        fileName = `archive-${randomNum}-${today}.zip`;
+    }
+    
+    const filePath = `public/${fileName}`;
         const { error: uploadError } = await supabase.storage
             .from('files')
             .upload(filePath, uploadFile, {
