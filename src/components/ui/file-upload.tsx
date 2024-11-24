@@ -90,59 +90,58 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onChange }) => {
   const handleUpload = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      if (files.length === 0) {
-        throw new Error('Please select at least one file');
-      }
+        if (files.length === 0) {
+            throw new Error('Please select at least one file');
+        }
 
-      setUploadStatus("uploading");
-      setError("");
-      
-      const timestamp = new Date().getTime();
-      const randomString = Math.random().toString(36).substring(7);
+        setUploadStatus("uploading");
+        setError("");
 
-      let uploadFile: File | Blob;
-      let fileName: string;
+        let uploadFile: File | Blob;
+        let fileName: string;
 
-      if (files.length === 1) {
-        uploadFile = files[0];
-        const fileExt = files[0].name.split('.').pop();
-        fileName = `${timestamp}-${randomString}.${fileExt}`;
-      } else {
-        uploadFile = await createZipFile(files);
-        fileName = `${timestamp}-${randomString}.zip`;
-      }
+        if (files.length === 1) {
+            // Use the original filename
+            uploadFile = files[0];
+            fileName = files[0].name;
+        } else {
+            // For multiple files, create a zip and give a default name
+            uploadFile = await createZipFile(files);
+            fileName = `archive-${new Date().getTime()}.zip`;
+        }
 
-      const filePath = `public/${fileName}`;
+        const filePath = `public/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(filePath, uploadFile, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: files.length === 1 ? files[0].type : 'application/zip'
-        });
+        const { error: uploadError } = await supabase.storage
+            .from('files')
+            .upload(filePath, uploadFile, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: files.length === 1 ? files[0].type : 'application/zip'
+            });
 
-      if (uploadError) {
-        throw uploadError;
-      }
+        if (uploadError) {
+            throw uploadError;
+        }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('files')
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+            .from('files')
+            .getPublicUrl(filePath);
 
-      const shortURL = await GenerateShortUrl(publicUrl); 
-      setShortUrl(shortURL);
-      setDownloadUrl(publicUrl);
-      setUploadStatus("complete");
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 5000);
-      
+        const shortURL = await GenerateShortUrl(publicUrl);
+        setShortUrl(shortURL);
+        setDownloadUrl(publicUrl);
+        setUploadStatus("complete");
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+
     } catch (err) {
-      console.error('Upload error:', err);
-      setError(err instanceof Error ? err.message : 'Error uploading file');
-      setUploadStatus("error");
+        console.error('Upload error:', err);
+        setError(err instanceof Error ? err.message : 'Error uploading file');
+        setUploadStatus("error");
     }
-  };
+};
+
 
   const removeFile = (index: number) => (e: React.MouseEvent) => {
     e.stopPropagation();
