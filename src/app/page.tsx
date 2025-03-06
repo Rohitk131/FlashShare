@@ -13,6 +13,8 @@ export default function Home() {
     <div className="min-h-screen bg-black text-white relative overflow-hidden ">
       {/* Top Radial Gradient */}
       <div className="absolute -top-96 left-1/2 transform -translate-x-1/2 w-[1200px] h-[900px] rounded-full bg-gradient-to-b from-emerald-500/30 to-transparent blur-3xl" />
+      <h1 className="bg-gradient-to-r from-blue-600 to-green-600 text-white text-center text-sm shadow-md">✨ Exciting Updates Ahead! New features are on the way—stay tuned! ✨</h1>
+
       <header className="container mx-auto mt-2  relative py-6 px-4 sm:px-6 lg:px-8 flex justify-between bg-secondary/15 shadow-lg shadow-neutral-600/5 backdrop-blur-2xl border border-green-400/20 p-6 rounded-2xl">
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-600 to-green-700 animate-pulse inline-block">
           Flash
